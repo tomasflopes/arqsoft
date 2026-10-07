@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+  lmsbooks:
+    image: lmsbooks:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=bootstrap
+      - spring.datasource.url=jdbc:postgresql://books_db_{{.Task.Slot}}:5432/books_{{.Task.Slot}}
+      - spring.datasource.username=postgres
+      - spring.datasource.password=password
+      - file.upload-dir=/tmp/uploads-psoft-g1-instance
+      - spring.rabbitmq.host=rabbitmq
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    ports:
+      - "8087:8080"  # Expose the lmsbooks service on port 8087
+    networks:
+      - lms_network
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "1.00"
+          memory: 1G
+        reservations:
+          cpus: "0.50"
+          memory: 512M
+    ports:
+#      - "5432:5432"  # Default Postgres port for the first replica
+#      - "5433:5432"  # Postgres port for the second replica
+#      - "5434:5432"  # Postgres port for the third replica
+      - "5432-5450:5432"
+
+    networks:
+      - lms_network
+
+  rabbitmq:
+    image:	rabbitmq:3-management
+    container_name: rabbitmq
+    restart:	always
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
+    ports:
+      - "5672:5672"		#	RabbitMQ	main	port
+      - "15672:15672"		#	RabbitMQ	management	UI
+    environment:
+      RABBITMQ_DEFAULT_USER:	guest
+      RABBITMQ_DEFAULT_PASS:	guest
+    networks:
+      - lms_network
+
+networks:
+  lms_network:
+    driver: overlay

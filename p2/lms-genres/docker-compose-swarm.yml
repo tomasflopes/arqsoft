@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  lmsgenres_1:
+    image: lmsgenres:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=instance1,bootstrap
+      - spring.datasource.url=jdbc:postgresql://genres_db_1:5432/genres_1
+      - spring.datasource.username=postgres
+      - spring.datasource.password=password
+      - file.upload-dir=/tmp/uploads-psoft-g1-instance1
+      - spring.rabbitmq.host=rabbitmq
+      - server.port=8080
+    volumes:
+      - "uploaded_files_volume_1:/tmp"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.40"
+          memory: 384M
+        reservations:
+          cpus: "0.20"
+          memory: 192M
+    ports:
+      - "8094:8080"
+    networks:
+      - lms_overlay_attachable_network
+
+  lmsgenres_2:
+    image: lmsgenres:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=instance2,bootstrap
+      - spring.datasource.url=jdbc:postgresql://genres_db_2:5432/genres_2
+      - spring.datasource.username=postgres
+      - spring.datasource.password=password
+      - file.upload-dir=/tmp/uploads-psoft-g1-instance2
+      - spring.rabbitmq.host=rabbitmq
+      - server.port=8080
+    volumes:
+      - "uploaded_files_volume_2:/tmp"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.40"
+          memory: 384M
+        reservations:
+          cpus: "0.20"
+          memory: 192M
+    ports:
+      - "8089:8080"
+    networks:
+      - lms_overlay_attachable_network
+
+networks:
+  lms_overlay_attachable_network:
+    external: true
+
+volumes:
+  uploaded_files_volume_1:
+  uploaded_files_volume_2:

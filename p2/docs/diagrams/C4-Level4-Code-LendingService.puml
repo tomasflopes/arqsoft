@@ -1,0 +1,45 @@
+@startuml LendingService_Methods
+
+skinparam componentStyle rectangle
+
+title LendingService - Key Methods
+
+package "LendingService" {
+    [createLending()] as create
+    [returnBook()] as return
+    [getStatistics()] as stats
+}
+
+package "Dependencies" {
+    database "Repository" as repo
+    component "Validation" as valid
+    component "Fine Calculator" as fine
+    queue "Events" as events
+}
+
+create --> valid : validate rules
+create --> repo : save()
+create --> events : LENDING_CREATED
+
+return --> repo : findById()
+return --> fine : calculate()
+return --> repo : update()
+return --> events : LENDING_UPDATED
+
+stats --> repo : query()
+
+note right of valid
+  **Validation Rules:**
+  - Book available
+  - Reader active
+  - Max 3 books/reader
+  - No pending fines
+end note
+
+note right of fine
+  **Fine Calculation:**
+  €0.50/day overdue
+  Max: €50.00
+end note
+
+@enduml

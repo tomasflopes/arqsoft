@@ -1,0 +1,86 @@
+@startuml logical-view-c4
+
+top to bottom direction
+
+interface "API" as API
+interface "DB" as DB
+interface "API Ninjas" as NINJAS
+interface "ISBN API" as ISBN
+
+component "Onion Slice" <<component>> <<system (C4)>> {
+  portin " " as P1
+  portin "Persistence API" as P2
+  portin " " as P3
+  portin " " as P4
+  portin " " as P5
+
+  Interface "Controller API" as CTRL_API
+  Interface "Data Model API" as DATA_API
+
+  folder "Frameworks & Drivers Layer" #80FFFF {
+    component "Routing" as ROUTE <<component>> {
+    }
+    component "Persistence" as PERSISTENCE <<component>> {
+    }
+    component "Driver" as Driver <<component>>{
+    }
+  }
+
+  component "Data Model" as DATA <<component>> {
+  }
+  component "DTO" as DTO <<component>> {
+  }
+
+  Interface "App Services API" AS SRV_API
+  Interface "DTO API" AS DTO_API
+  Interface "Repo API" AS REPO_API
+  Interface "Model API" AS MODEL_API
+  Interface "Persistence API" AS PERSISTENCE_API
+
+  folder "Interface Adapters Layer" #80FF80 {
+    component "Controller" as CTRL <<component>> {
+    }
+  }
+
+  folder "Application Business Rules" #FF8080 {
+    component "Application Service" as SRV <<component>> {
+    }
+  }
+
+  folder "Enterprise Business Rules" #FFC080 {
+    component "Domain Model DDD" as MODEL <<component>> {
+    }
+  }
+}
+
+API -- P1
+
+ROUTE --- P1
+PERSISTENCE -- P2
+
+ROUTE --( CTRL_API
+CTRL -up- CTRL_API
+PERSISTENCE -- PERSISTENCE_API
+CTRL -up-( PERSISTENCE_API 
+PERSISTENCE --( DATA_API 
+CTRL -up-( DATA_API 
+DATA --( DATA_API 
+
+CTRL --( SRV_API
+SRV -up-( SRV_API
+SRV -up-( DTO_API
+CTRL --( DTO_API
+DTO --( DTO_API
+
+CTRL -- REPO_API
+SRV -up-( REPO_API 
+
+SRV --( MODEL_API 
+CTRL --( MODEL_API 
+MODEL -up- MODEL_API 
+
+P3 --( DB
+P4 --( NINJAS
+P5 --( ISBN
+
+@enduml

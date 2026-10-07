@@ -1,0 +1,16 @@
+package pt.psoft.g1.psoftg1.genremanagement.api;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateGenreRequest {
+    @NotBlank(message = "Genre name is mandatory")
+    @Size(min = 1, max = 100, message = "Genre name must be between 1 and 100 characters")
+    private String genre;
+}

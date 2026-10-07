@@ -1,0 +1,10 @@
+@startuml deployment-view
+
+node "Localhost" {
+  component "Backend App" as APP
+  database "H2 (in-memory)" as H2
+}
+
+APP --> H2 : uses
+
+@enduml

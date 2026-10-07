@@ -1,0 +1,80 @@
+@startuml implementation-view-c3
+
+top to bottom direction
+
+interface "API" as API
+interface "DB" as DB
+interface "API Ninjas" as NINJAS
+
+component "App" as APP {
+  portin " " as P1
+  portin " " as P3
+  portin " " as P4
+
+  component "auth" as AUTH
+  component "authormanagement" as AUTHOR_MGMT
+  component "bookmanagement" as BOOK_MGMT
+  component "genremanagement" as GENRE_MGMT
+  component "lendingmanagement" as LENDING_MGMT
+  component "readermanagement" as READER_MGMT
+  component "usermanagement" as USER_MGMT
+  component "external" as EXTERNAL
+  component "bootstrapping" as BOOTSTRAP
+  component "configuration" as CONFIG
+  component "exceptions" as EXCEPTIONS
+  component "shared" as SHARED
+
+  API -- P1
+  P3 --( DB
+  P4 --( NINJAS
+
+  AUTH --> USER_MGMT
+  AUTH --> CONFIG
+  AUTH --> EXCEPTIONS
+  AUTH --> SHARED
+
+  AUTHOR_MGMT --> CONFIG
+  AUTHOR_MGMT --> EXCEPTIONS
+  AUTHOR_MGMT --> SHARED
+
+  BOOK_MGMT --> AUTHOR_MGMT
+  BOOK_MGMT --> GENRE_MGMT
+  BOOK_MGMT --> CONFIG
+  BOOK_MGMT --> EXCEPTIONS
+  BOOK_MGMT --> SHARED
+
+  LENDING_MGMT --> BOOK_MGMT
+  LENDING_MGMT --> READER_MGMT
+  LENDING_MGMT --> AUTHOR_MGMT
+  LENDING_MGMT --> CONFIG
+  LENDING_MGMT --> EXCEPTIONS
+  LENDING_MGMT --> SHARED
+
+  READER_MGMT --> CONFIG
+  READER_MGMT --> EXCEPTIONS
+  READER_MGMT --> SHARED
+
+  USER_MGMT --> CONFIG
+  USER_MGMT --> EXCEPTIONS
+  USER_MGMT --> SHARED
+
+  EXTERNAL --> SHARED
+  EXTERNAL --> EXCEPTIONS
+
+  BOOTSTRAP --> AUTH
+  BOOTSTRAP --> AUTHOR_MGMT
+  BOOTSTRAP --> BOOK_MGMT
+  BOOTSTRAP --> GENRE_MGMT
+  BOOTSTRAP --> LENDING_MGMT
+  BOOTSTRAP --> READER_MGMT
+  BOOTSTRAP --> USER_MGMT
+  BOOTSTRAP --> EXTERNAL
+  BOOTSTRAP --> CONFIG
+  BOOTSTRAP --> EXCEPTIONS
+  BOOTSTRAP --> SHARED
+
+  CONFIG --> SHARED
+  EXCEPTIONS --> SHARED
+}
+
+@enduml

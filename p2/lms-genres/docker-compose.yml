@@ -1,0 +1,76 @@
+services:
+  lmsgenre_1:
+    image: lmsgenres:latest
+    container_name: genre1_in_lms_network
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8094:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: instance1,bootstrap
+      "spring.datasource.url": "jdbc:postgresql://genres_db_1:5432/genres_1"
+      "spring.rabbitmq.host": "rabbitmq"
+      "server.port": "8080"
+    command: ["java", "-jar", "/app/app.jar"]
+    networks:
+      - lms_network
+      - lms_overlay_attachable_network
+    volumes:
+      - "uploaded_files_volume_1:/tmp"
+    depends_on:
+      - genres_db_1
+
+  lmsgenre_2:
+    image: lmsgenres:latest
+    container_name: genre2_in_lms_network
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: instance2,bootstrap
+      "spring.datasource.url": "jdbc:postgresql://genres_db_2:5432/genres_2"
+      "spring.rabbitmq.host": "rabbitmq"
+      "server.port": "8080"
+    command: ["java", "-jar", "/app/app.jar"]
+    networks:
+      - lms_network
+      - lms_overlay_attachable_network
+    volumes:
+      - "uploaded_files_volume_2:/tmp"
+    depends_on:
+      - genres_db_2
+
+  genres_db_1:
+    image: postgres:17.2
+    container_name: genres_db_1
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: genres_1
+    networks:
+      - lms_network
+      - lms_overlay_attachable_network
+
+  genres_db_2:
+    image: postgres:17.2
+    container_name: genres_db_2
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: genres_2
+    networks:
+      - lms_network
+      - lms_overlay_attachable_network
+
+networks:
+  lms_network:
+    external: true
+  lms_overlay_attachable_network:
+    external: true
+
+volumes:
+  uploaded_files_volume_1:
+  uploaded_files_volume_2:

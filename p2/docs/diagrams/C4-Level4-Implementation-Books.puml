@@ -1,0 +1,39 @@
+@startuml Books_Implementation
+
+skinparam packageStyle rectangle
+
+title Books Service - Key Classes
+
+package "bookmanagement" {
+    class BookController
+    class BookService
+    class Book <<Entity>>
+    class ISBN <<Value Object>>
+    interface BookRepository
+    interface BookEventsPublisher
+}
+
+package "authormanagement" {
+    class AuthorController
+    class AuthorService  
+    class Author <<Entity>>
+}
+
+BookController --> BookService
+BookService --> BookRepository
+BookService --> BookEventsPublisher
+BookService ..> Book
+Book *-- ISBN
+Book --> Author
+
+AuthorController --> AuthorService
+
+note right of Book
+  **Aggregate Root**
+  - ISBN (identity)
+  - Title
+  - Authors
+  - Genre
+end note
+
+@enduml

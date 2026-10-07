@@ -1,0 +1,100 @@
+package pt.psoft.g1.psoftg1.readermanagement.services;
+
+import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import pt.psoft.g1.psoftg1.genremanagement.model.Genre;
+import pt.psoft.g1.psoftg1.readermanagement.model.ReaderDetails;
+import pt.psoft.g1.psoftg1.usermanagement.model.Reader;
+import pt.psoft.g1.psoftg1.usermanagement.repositories.UserRepository;
+
+@RunWith(MockitoJUnitRunner.class)
+public class ReaderServiceImplTest {
+
+    @Mock private ReaderRepository readerRepo;
+    @Mock private UserRepository userRepo;
+    @Mock private ReaderMapper readerMapper;
+    @Mock private GenreRepository genreRepo;
+    @Mock private ForbiddenNameRepository forbiddenNameRepository;
+    @Mock private PhotoRepository photoRepository;
+    @Mock private CacheRepository cacheRepository;
+
+    @InjectMocks private ReaderServiceImpl readerService;
+
+    private ReaderDetails dummyReaderDetails;
+    private Reader dummyReader;
+
+    @Before
+    public void setup() {
+        dummyReader = new Reader();
+        dummyReaderDetails = new ReaderDetails();
+        dummyReaderDetails.setReader(dummyReader);
+    }
+
+    @Test
+    public void testCreateReturnsNotNull() {
+        CreateReaderRequest request = new CreateReaderRequest();
+        request.setUsername("user1");
+        request.setFullName("John Doe");
+        request.setInterestList(List.of("Fantasy"));
+
+        when(userRepo.findByUsername(anyString())).thenReturn(Optional.empty());
+        when(forbiddenNameRepository.findByForbiddenNameIsContained(anyString())).thenReturn(List.of());
+        when(genreRepo.findByString(anyString())).thenReturn(Optional.of(new Genre("Fantasy")));
+        when(readerMapper.createReader(any())).thenReturn(dummyReader);
+        when(readerMapper.createReaderDetails(anyInt(), any(), any(), anyString(), any())).thenReturn(dummyReaderDetails);
+        when(userRepo.save(any())).thenReturn(dummyReader);
+        when(readerRepo.save(any())).thenReturn(dummyReaderDetails);
+
+        ReaderDetails result = readerService.create(request, "photo.png");
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testFindTopByGenreReturnsNotNull() {
+        when(readerRepo.findTopByGenre(any(Pageable.class), anyString(), any(), any())).thenReturn(
+            new org.springframework.data.domain.PageImpl<>(List.of(dummyReaderDetails))
+        );
+
+        List<?> result = readerService.findTopByGenre("Fantasy", LocalDate.now(), LocalDate.now());
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testFindByReaderNumberReturnsNotNull() {
+        when(readerRepo.findByReaderNumber(anyString())).thenReturn(Optional.of(dummyReaderDetails));
+
+        Optional<ReaderDetails> result = readerService.findByReaderNumber("R123");
+        assertTrue(result.isPresent());
+    }
+
+    @Test
+    public void testFindAllReturnsNotNull() {
+        when(readerRepo.findAll()).thenReturn(List.of(dummyReaderDetails));
+
+        Iterable<ReaderDetails> result = readerService.findAll();
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testFindTopReadersReturnsNotNull() {
+        when(readerRepo.findTopReaders(any())).thenReturn(
+            new org.springframework.data.domain.PageImpl<>(List.of(dummyReaderDetails))
+        );
+
+        List<ReaderDetails> result = readerService.findTopReaders(5);
+        assertNotNull(result);
+    }
+}

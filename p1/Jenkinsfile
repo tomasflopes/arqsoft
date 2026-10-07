@@ -1,0 +1,99 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'JDK17'
+        maven 'Maven3'
+    }
+
+    environment {
+        SONARQUBE_ENV = credentials('sonarqube-credentials')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Retrieving source code...'
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Compiling sources and resolving dependencies...'
+                sh 'mvn clean compile -DskipTests'
+            }
+        }
+
+        stage('Static Analysis') {
+            steps {
+                echo 'Running static code analysis (SonarQube)...'
+                withSonarQubeEnv('SonarQubeServer') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=psoft-g1 -Dsonar.login=$SONARQUBE_ENV'
+                }
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                echo 'Executing fast unit tests...'
+                sh 'mvn test'
+                junit 'target/surefire-reports/*.xml'
+            }
+        }
+
+        stage('Integration Tests') {
+            steps {
+                echo 'Running integration tests on a deployed test environment...'
+                /* Example: start required services or DB containers
+                sh './start-test-environment.sh || true'
+                sh 'mvn verify -Pintegration-tests'
+                junit 'target/failsafe-reports/*.xml'
+                sh './stop-test-environment.sh || true'
+                */
+            }
+        }
+
+        stage('Mutation Tests') {
+            steps {
+                echo 'Performing mutation testing (PIT)...'
+                sh 'mvn -DwithHistory test-compile org.pitest:pitest-maven:mutationCoverage'
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'target/pit-reports',
+                    reportFiles: 'index.html',
+                    reportName: 'Mutation Test Report'
+                ])
+            }
+        }
+
+        stage('Package') {
+            steps {
+                echo 'Packaging verified artifact...'
+                sh 'mvn package -DskipTests'
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying Application with Docker on port 2229'
+
+                sh 'docker compose down || docker-compose down'
+                sh 'docker compose up -d --build || docker-compose up -d --build'
+                sh 'docker ps'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline completed successfully.'
+        }
+        failure {
+            echo '❌ Pipeline failed. Please inspect the logs.'
+        }
+    }
+}

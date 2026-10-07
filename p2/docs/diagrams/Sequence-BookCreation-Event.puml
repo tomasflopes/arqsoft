@@ -1,0 +1,65 @@
+@startuml Sequence_Book_Creation_Event
+title Sequence Diagram - Book Creation with Event Publishing
+
+actor "Librarian" as librarian
+participant "lms-books\nREST API" as books_api
+participant "BookService" as book_service
+participant "BookRepository\n(PostgreSQL)" as book_repo
+participant "BookEventsPublisher" as event_publisher
+participant "RabbitMQ\nDirect Exchange" as rabbitmq
+participant "lms-lendings\nConsumer" as lendings_consumer
+database "Lendings DB\n(Book Cache)" as lendings_db
+
+librarian -> books_api : POST /api/books\n{isbn, title, author, genre}
+activate books_api
+
+books_api -> book_service : createBook(bookDTO)
+activate book_service
+
+book_service -> book_repo : save(book)
+activate book_repo
+book_repo --> book_service : Book (persisted)
+deactivate book_repo
+
+book_service -> event_publisher : sendBookCreated(book)
+activate event_publisher
+
+event_publisher -> event_publisher : toBookViewAMQP(book)
+note right: Serializa Book para JSON\ncom versão = 1L
+
+event_publisher -> rabbitmq : convertAndSend(\n  exchange: "book.exchange",\n  routingKey: "BOOK_CREATED",\n  payload: bookViewAMQP\n)
+activate rabbitmq
+
+rabbitmq --> event_publisher : ACK
+deactivate event_publisher
+
+book_service --> books_api : BookView (created)
+deactivate book_service
+
+books_api --> librarian : 201 Created\n{bookDetails}
+deactivate books_api
+
+...Async Event Processing...
+
+rabbitmq -> lendings_consumer : onBookCreated(bookViewAMQP)
+activate lendings_consumer
+deactivate rabbitmq
+
+lendings_consumer -> lendings_consumer : deserialize(message)
+lendings_consumer -> lendings_db : saveOrUpdate(bookCache)
+activate lendings_db
+
+lendings_db --> lendings_consumer : OK
+deactivate lendings_db
+
+lendings_consumer --> rabbitmq : ACK
+deactivate lendings_consumer
+
+note over lendings_db
+  **Eventual Consistency:**
+  O catálogo de livros no serviço
+  de lendings está agora sincronizado
+  com o serviço de books
+end note
+
+@enduml

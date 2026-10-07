@@ -1,0 +1,177 @@
+@startuml Domain_Model
+!define ENTITY class
+!define VALUE_OBJECT class
+!define AGGREGATE class
+
+skinparam class {
+    BackgroundColor<<aggregate>> LightYellow
+    BackgroundColor<<entity>> LightBlue
+    BackgroundColor<<value>> LightGreen
+    BorderColor Black
+}
+
+title Domain Model - Library Management System (Microservices)
+
+package "lms-books Context" {
+    AGGREGATE Book <<aggregate>> {
+        - ISBN isbn
+        - Title title
+        - Description description
+        - Genre genre
+        - List<Author> authors
+        - Photo photo
+        + createBook()
+        + updateBook()
+        + addAuthor()
+    }
+    
+    ENTITY Author <<entity>> {
+        - AuthorID id
+        - Name name
+        - Bio bio
+        - Photo photo
+        + createAuthor()
+        + updateBio()
+    }
+    
+    VALUE_OBJECT ISBN <<value>> {
+        - String value
+        + validate()
+    }
+    
+    VALUE_OBJECT Title <<value>> {
+        - String value
+        + validate()
+    }
+    
+    Book "1" *-- "1" ISBN
+    Book "1" *-- "1" Title
+    Book "1" *-- "1..*" Author
+}
+
+package "lms-genres Context" {
+    AGGREGATE Genre <<aggregate>> {
+        - GenreID id
+        - String name
+        - String description
+        + createGenre()
+        + updateGenre()
+    }
+}
+
+package "lms-readers Context" {
+    AGGREGATE Reader <<aggregate>> {
+        - ReaderID id
+        - Name name
+        - Email email
+        - PhoneNumber phone
+        - BirthDate birthDate
+        - Photo photo
+        - List<Interest> interests
+        + createReader()
+        + updateProfile()
+        + addInterest()
+    }
+    
+    VALUE_OBJECT ReaderID <<value>> {
+        - String value
+    }
+    
+    VALUE_OBJECT PhoneNumber <<value>> {
+        - String value
+        + validate()
+    }
+    
+    Reader "1" *-- "1" ReaderID
+    Reader "1" *-- "1" PhoneNumber
+}
+
+package "lms-lendings Context" {
+    AGGREGATE Lending <<aggregate>> {
+        - LendingID id
+        - ReaderID readerID
+        - ISBN bookISBN
+        - LocalDate startDate
+        - LocalDate expectedReturnDate
+        - LocalDate returnedDate
+        - Fine fine
+        - LendingStatus status
+        + createLending()
+        + returnBook()
+        + calculateFine()
+    }
+    
+    ENTITY Fine <<entity>> {
+        - Money amount
+        - LocalDate dueDate
+        - Boolean paid
+        + calculate()
+        + markPaid()
+    }
+    
+    VALUE_OBJECT LendingID <<value>> {
+        - String value
+    }
+    
+    enum LendingStatus {
+        ACTIVE
+        RETURNED
+        OVERDUE
+    }
+    
+    Lending "1" *-- "1" LendingID
+    Lending "1" *-- "0..1" Fine
+    Lending "1" *-- "1" LendingStatus
+}
+
+package "lms-authnusers Context" {
+    AGGREGATE User <<aggregate>> {
+        - UserID id
+        - Username username
+        - Password password
+        - Email email
+        - Set<Role> roles
+        + authenticate()
+        + authorize()
+    }
+    
+    enum Role {
+        LIBRARIAN
+        READER
+        ADMIN
+    }
+    
+    User "1" *-- "1..*" Role
+}
+
+' Cross-context relationships (via events)
+Book ..> Genre : references
+Lending ..> Reader : references (via ReaderID)
+Lending ..> Book : references (via ISBN)
+
+note right of Book
+  **Bounded Context: Books**
+  Responsible for managing
+  the book catalog and authors
+end note
+
+note right of Lending
+  **Bounded Context: Lendings**
+  Maintains eventual consistency
+  with Books and Readers via
+  RabbitMQ events
+end note
+
+note left of Genre
+  **Bounded Context: Genres**
+  Shared by multiple contexts
+  via event-driven updates
+end note
+
+note bottom of User
+  **Bounded Context: Auth**
+  Central authentication
+  and authorization
+end note
+
+@enduml

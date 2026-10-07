@@ -1,0 +1,30 @@
+@startuml logical-view-c2
+
+top to bottom direction
+
+interface "API" as API
+interface "API Ninjas" as NINJAS
+interface "API IBSN" as ISBNDB
+interface "API Google Books" as GOOGLEBOOKS
+
+component "LMS System" <<component>> <<system (C4)>> {
+  portin " " as P1
+  portout " " as P2
+  portout " " as P3
+  portout " " as P4
+  
+  P4 --( NINJAS
+  P2 --( ISBNDB
+  P3 --( GOOGLEBOOKS
+  API -- P1
+  component "Backend" as BACKEND {
+    portin " " as P5
+  }
+  P1 -- P5
+  P5 -- P2
+  P5 -- P3
+  P5 -- P4
+}
+
+@enduml
+

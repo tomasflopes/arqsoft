@@ -1,0 +1,48 @@
+@startuml Deployment_Simple
+!include <C4/C4_Deployment>
+
+title Deployment - Docker Environment
+
+Deployment_Node(docker, "Docker Host") {
+    
+    Deployment_Node(net, "lms_network") {
+        
+        Container(mq, "RabbitMQ", "rabbitmq:3-mgmt")
+        ContainerDb(db_pg, "PostgreSQL (Auth/Books/Readers/Lendings)", "postgres:latest")
+        ContainerDb(db_mysql, "MySQL (Genres)", "mysql:8")
+
+        Container(auth, "lms-authnusers", "Spring Boot")
+        Container(books, "lms-books", "Spring Boot")
+        Container(genres, "lms-genres", "Spring Boot")
+        Container(readers, "lms-readers", "Spring Boot")
+        Container(lendings, "lms-lendings", "Spring Boot")
+    }
+}
+
+Deployment_Node(client, "Client") {
+    Container(browser, "Browser", "Web App")
+}
+
+Rel(browser, auth, "HTTPS")
+Rel(browser, books, "HTTPS")
+Rel(browser, lendings, "HTTPS")
+
+Rel(auth, db_pg, "JDBC")
+Rel(books, db_pg, "JDBC")
+Rel(readers, db_pg, "JDBC")
+Rel(lendings, db_pg, "JDBC")
+Rel(genres, db_mysql, "JDBC")
+
+Rel(books, mq, "AMQP")
+Rel(genres, mq, "AMQP")
+Rel(readers, mq, "AMQP")
+Rel(lendings, mq, "AMQP")
+
+note right of docker
+  **Scaling:**
+  - books: 2 replicas
+  - lendings: 2 replicas
+  - others: 1 replica
+end note
+
+@enduml

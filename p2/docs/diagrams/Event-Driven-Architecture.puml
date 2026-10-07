@@ -1,0 +1,46 @@
+@startuml Event_Driven_Architecture
+
+skinparam rectangle {
+    BackgroundColor<<microservice>> LightBlue
+    BackgroundColor<<broker>> Orange
+    BorderColor Black
+}
+
+title Event-Driven Architecture - RabbitMQ Communication Flow
+
+component "lms-books\n(Publisher)" <<microservice>> as books
+component "lms-genres\n(Publisher)" <<microservice>> as genres
+component "lms-readers\n(Publisher)" <<microservice>> as readers
+component "lms-lendings\n(Publisher)" <<microservice>> as lendings
+
+database "RabbitMQ\nMessage Broker" <<broker>> as rabbitmq
+
+component "lms-lendings\n(Consumer)" <<microservice>> as lendings_consumer
+component "lms-books\n(Consumer)" <<microservice>> as books_consumer
+
+books -down-> rabbitmq : "Publish\nBOOK_CREATED\nBOOK_UPDATED\nBOOK_DELETED"
+genres -down-> rabbitmq : "Publish\nGENRE_CREATED\nGENRE_UPDATED\nGENRE_DELETED"
+readers -down-> rabbitmq : "Publish\nREADER_CREATED\nREADER_UPDATED\nREADER_DELETED"
+lendings -down-> rabbitmq : "Publish\nLENDING_CREATED\nLENDING_UPDATED\nLENDING_DELETED"
+
+rabbitmq -down-> lendings_consumer : "Subscribe\nBook & Reader Events"
+rabbitmq -down-> books_consumer : "Subscribe\nGenre Events"
+
+note right of rabbitmq
+  **Message Broker Configuration:**
+  - Host: rabbitmq_in_lms_network
+  - Port: 5672 (AMQP)
+  - Management UI: 15672
+  - Pattern: Direct Exchange
+  - Delivery: At-least-once
+  - Persistence: Enabled
+end note
+
+note left of lendings_consumer
+  **Eventual Consistency:**
+  O serviço de lendings mantém
+  caches locais de Books e Readers
+  atualizados via eventos assíncronos
+end note
+
+@enduml

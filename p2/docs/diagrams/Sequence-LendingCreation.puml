@@ -1,0 +1,95 @@
+@startuml Lending_Creation_Flow
+title Lending Creation Flow - Cross-Service Communication
+
+actor "Reader" as reader
+participant "lms-lendings\nAPI" as lendings_api
+participant "LendingService" as lending_service
+database "Lendings DB\n(Book Cache)" as lendings_db
+database "Lendings DB\n(Reader Cache)" as reader_cache
+participant "External Books\nService Client" as books_client
+participant "External Readers\nService Client" as readers_client
+participant "lms-books\nAPI" as books_api
+participant "lms-readers\nAPI" as readers_api
+participant "LendingEventsPublisher" as event_publisher
+participant "RabbitMQ" as rabbitmq
+
+reader -> lendings_api : POST /api/lendings\n{readerID, isbn, duration}
+activate lendings_api
+
+lendings_api -> lending_service : createLending(lendingDTO)
+activate lending_service
+
+' Check book availability in local cache
+lending_service -> lendings_db : findBookByISBN(isbn)
+activate lendings_db
+lendings_db --> lending_service : Book (from cache) OR null
+deactivate lendings_db
+
+alt Book NOT in cache or outdated
+    lending_service -> books_client : GET /api/books/{isbn}
+    activate books_client
+    books_client -> books_api : REST Call
+    activate books_api
+    books_api --> books_client : BookView
+    deactivate books_api
+    books_client --> lending_service : Book details
+    deactivate books_client
+    
+    lending_service -> lendings_db : updateBookCache(book)
+    activate lendings_db
+    deactivate lendings_db
+end
+
+' Check reader in local cache
+lending_service -> reader_cache : findReaderByID(readerID)
+activate reader_cache
+reader_cache --> lending_service : Reader (from cache) OR null
+deactivate reader_cache
+
+alt Reader NOT in cache or outdated
+    lending_service -> readers_client : GET /api/readers/{readerID}
+    activate readers_client
+    readers_client -> readers_api : REST Call
+    activate readers_api
+    readers_api --> readers_client : ReaderView
+    deactivate readers_api
+    readers_client --> lending_service : Reader details
+    deactivate readers_client
+    
+    lending_service -> reader_cache : updateReaderCache(reader)
+    activate reader_cache
+    deactivate reader_cache
+end
+
+' Create lending
+lending_service -> lending_service : validateLending()
+note right: Regras de negócio:\n- Livro disponível?\n- Reader ativo?\n- Limite de empréstimos?
+
+lending_service -> lendings_db : save(lending)
+activate lendings_db
+lendings_db --> lending_service : Lending (persisted)
+deactivate lendings_db
+
+' Publish event
+lending_service -> event_publisher : sendLendingCreated(lending)
+activate event_publisher
+event_publisher -> rabbitmq : LENDING_CREATED event
+activate rabbitmq
+rabbitmq --> event_publisher : ACK
+deactivate rabbitmq
+deactivate event_publisher
+
+lending_service --> lendings_api : LendingView
+deactivate lending_service
+
+lendings_api --> reader : 201 Created\n{lendingDetails}
+deactivate lendings_api
+
+note over lendings_db, reader_cache
+  **Hybrid Pattern:**
+  - Cache local para performance (reads)
+  - Sync via RabbitMQ events (eventual consistency)
+  - Fallback para REST API se necessário
+end note
+
+@enduml

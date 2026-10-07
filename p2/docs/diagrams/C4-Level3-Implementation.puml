@@ -1,0 +1,64 @@
+@startuml Implementation_Structure
+
+skinparam packageStyle rectangle
+
+title Implementation View - Package Structure
+
+package "lms-books" {
+    [api] as books_api
+    [service] as books_svc
+    [model] as books_model
+    [repositories] as books_repo
+    [publishers] as books_pub
+}
+
+package "lms-lendings" {
+    [api] as lend_api
+    [service] as lend_svc
+    [model] as lend_model
+    [repositories] as lend_repo
+    [publishers] as lend_pub
+    [consumers] as lend_cons
+    [external] as lend_ext
+}
+
+package "lms-genres" {
+    [api] as genre_api
+    [service] as genre_svc
+    [publishers] as genre_pub
+}
+
+package "lms-readers" {
+    [api] as reader_api
+    [service] as reader_svc
+    [publishers] as reader_pub
+}
+
+package "lms-authnusers" {
+    [api] as auth_api
+    [security] as auth_sec
+}
+
+books_api --> books_svc
+books_svc --> books_repo
+books_svc --> books_pub
+
+lend_api --> lend_svc
+lend_svc --> lend_repo
+lend_svc --> lend_pub
+lend_cons --> lend_repo
+lend_ext --> books_api
+lend_ext --> reader_api
+
+note right of lms_books
+  **Layered Architecture**
+  api → service → repositories
+end note
+
+note right of lms_lendings
+  **Hybrid Pattern**
+  - Event consumers
+  - REST fallback
+end note
+
+@enduml

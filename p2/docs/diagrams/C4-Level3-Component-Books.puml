@@ -1,0 +1,22 @@
+@startuml C4_Component_Books
+!include <C4/C4_Component>
+
+title Component Diagram - Books Service
+
+Container_Boundary(books, "Books Service") {
+    Component(api, "REST API", "Controllers", "Book & Author endpoints")
+    Component(service, "Business Logic", "Services", "Book/Author operations")
+    Component(repo, "Data Access", "Repositories", "JPA repositories")
+    Component(events, "Event Publisher", "RabbitMQ", "Publish book events")
+}
+
+ContainerDb(db, "Books DB", "PostgreSQL")
+System_Ext(mq, "RabbitMQ", "Message Broker")
+
+Rel(api, service, "Uses")
+Rel(service, repo, "Persists")
+Rel(service, events, "Publishes")
+Rel(repo, db, "JDBC")
+Rel(events, mq, "AMQP")
+
+@enduml

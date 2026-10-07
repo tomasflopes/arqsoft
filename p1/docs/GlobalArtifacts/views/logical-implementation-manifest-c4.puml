@@ -1,0 +1,156 @@
+@startuml logical-implementation-manifest-c4
+
+top to bottom direction
+
+package "Logical View (C4)" {
+  interface "API" as L_API
+  interface "DB" as L_DB
+  interface "API Ninjas" as L_NINJAS
+
+  component " " as L_ONION_SLICE {
+    portin " " as L_P1
+    portin "Persistence API" as L_P2
+    portin " " as L_P3
+    portin " " as L_P4
+
+    Interface "Controller API" as L_CTRL_API
+    Interface "Data Model API" as L_DATA_API
+
+    folder "Frameworks & Drivers Layer" #80FFFF {
+      component "Routing" as L_ROUTE <<component>>
+      component "Persistence" as L_PERSISTENCE <<component>>
+      component "Driver" as L_DRIVER <<component>>
+    }
+
+    component "Data Model" as L_DATA <<component>>
+    component "DTO" as L_DTO <<component>>
+
+    Interface "App Services API" AS L_SRV_API
+    Interface "DTO API" AS L_DTO_API
+    Interface "Repo API" AS L_REPO_API
+    Interface "Model API" AS L_MODEL_API
+    Interface "Persistence API" AS L_PERSISTENCE_API
+
+    folder "Interface Adapters Layer" #80FF80 {
+      component "Controller" as L_CTRL <<component>>
+    }
+
+    folder "Application Business Rules" #FF8080 {
+      component "Application Service" as L_SRV <<component>>
+    }
+
+    folder "Enterprise Business Rules" #FFC080 {
+      component "Domain Model DDD" as L_MODEL <<component>>
+    }
+  }
+
+  L_API -- L_P1
+  L_ROUTE --- L_P1
+  L_PERSISTENCE -- L_P2
+  L_ROUTE --( L_CTRL_API
+  L_CTRL -up- L_CTRL_API
+  L_PERSISTENCE -- L_PERSISTENCE_API
+  L_CTRL -up-( L_PERSISTENCE_API 
+  L_PERSISTENCE --( L_DATA_API 
+  L_CTRL -up-( L_DATA_API 
+  L_DATA --( L_DATA_API 
+  L_CTRL --( L_SRV_API
+  L_SRV -up-( L_SRV_API
+  L_SRV -up-( L_DTO_API
+  L_CTRL --( L_DTO_API
+  L_DTO --( L_DTO_API
+  L_CTRL -- L_REPO_API
+  L_SRV -up-( L_REPO_API 
+  L_SRV --( L_MODEL_API 
+  L_CTRL --( L_MODEL_API 
+  L_MODEL -up- L_MODEL_API 
+  L_P3 --( L_DB
+  L_P4 --( L_NINJAS
+}
+
+package "Implementation View (C4)" {
+  interface "API" as I_API
+  interface "DB" as I_DB
+  interface "API Ninjas" as I_NINJAS
+
+  component " " as I_ONION_SLICE {
+    portin " " as I_P1
+    portin "Persistence API" as I_P2
+    portin " " as I_P3
+    portin " " as I_P4
+
+    Interface "Controller API" as I_CTRL_API
+    Interface "Data Model API" as I_DATA_API
+
+    folder "Frameworks & Drivers Layer" #80FFFF {
+      component "Routing" as I_ROUTE <<component>>
+      component "Persistence" as I_PERSISTENCE <<component>>
+      component "Driver" as I_DRIVER <<component>>
+    }
+
+    component "Data Model" as I_DATA <<component>>
+    component "DTO" as I_DTO <<component>>
+
+    Interface "App Services API" AS I_SRV_API
+    Interface "DTO API" AS I_DTO_API
+    Interface "Repo API" AS I_REPO_API
+    Interface "Model API" AS I_MODEL_API
+    Interface "Persistence API" AS I_PERSISTENCE_API
+
+    folder "Interface Adapters Layer" #80FF80 {
+      component "Controller" as I_CTRL <<component>>
+      component "Repository" as I_REPO <<component>>
+    }
+
+    folder "Application Business Rules" #FF8080 {
+      component "Application Service" as I_SRV <<component>>
+    }
+
+    folder "Enterprise Business Rules" #FFC080 {
+      component "Domain Model DDD" as I_MODEL <<component>>
+    }
+  }
+
+  I_API -- I_P1
+  I_ROUTE --- I_P1
+  I_PERSISTENCE -- I_P2
+  I_ROUTE --( I_CTRL_API
+  I_CTRL -up- I_CTRL_API
+  I_PERSISTENCE -- I_PERSISTENCE_API
+  I_REPO -up-( I_PERSISTENCE_API 
+  I_PERSISTENCE --( I_DATA_API 
+  I_REPO -up-( I_DATA_API 
+  I_DATA --( I_DATA_API 
+  I_REPO -- I_REPO_API
+  I_DRIVER --( I_REPO_API
+  I_CTRL --( I_SRV_API
+  I_SRV -up-( I_SRV_API
+  I_SRV -up-( I_DTO_API
+  I_CTRL --( I_DTO_API
+  I_DTO --( I_DTO_API
+  I_REPO -- I_REPO_API
+  I_SRV -up-( I_REPO_API 
+  I_SRV --( I_MODEL_API 
+  I_REPO --( I_MODEL_API 
+  I_MODEL -up- I_MODEL_API 
+  I_P3 --( I_DB
+  I_P4 --( I_NINJAS
+}
+
+L_ROUTE ..> I_ROUTE : <<manifest>>
+L_PERSISTENCE ..> I_PERSISTENCE : <<manifest>>
+L_DRIVER ..> I_DRIVER : <<manifest>>
+L_DATA ..> I_DATA : <<manifest>>
+L_DTO ..> I_DTO : <<manifest>>
+L_CTRL ..> I_CTRL : <<manifest>>
+L_SRV ..> I_SRV : <<manifest>>
+L_MODEL ..> I_MODEL : <<manifest>>
+L_REPO_API ..> I_REPO_API : <<manifest>>
+L_SRV_API ..> I_SRV_API : <<manifest>>
+L_DTO_API ..> I_DTO_API : <<manifest>>
+L_MODEL_API ..> I_MODEL_API : <<manifest>>
+L_PERSISTENCE_API ..> I_PERSISTENCE_API : <<manifest>>
+L_DATA_API ..> I_DATA_API : <<manifest>>
+L_CTRL_API ..> I_CTRL_API : <<manifest>>
+
+@enduml

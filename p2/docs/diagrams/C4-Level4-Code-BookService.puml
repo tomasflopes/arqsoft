@@ -1,0 +1,40 @@
+@startuml BookService_Methods
+
+skinparam componentStyle rectangle
+
+title BookService - Key Methods
+
+package "BookService" {
+    [createBook()] as create
+    [updateBook()] as update
+    [findByIsbn()] as find
+    [deleteBook()] as delete
+}
+
+package "Dependencies" {
+    database "Repository" as repo
+    queue "Event Publisher" as events
+}
+
+create --> repo : save()
+create --> events : BOOK_CREATED
+
+update --> find : get existing
+update --> repo : save()
+update --> events : BOOK_UPDATED
+
+delete --> find : get existing
+delete --> repo : delete()
+delete --> events : BOOK_DELETED
+
+find --> repo : findByIsbn()
+
+note right of create
+  **Workflow:**
+  1. Validate ISBN
+  2. Check duplicates
+  3. Save to DB
+  4. Publish event
+end note
+
+@enduml

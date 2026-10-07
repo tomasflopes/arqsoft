@@ -1,0 +1,26 @@
+@startuml C4_Component_Lendings
+!include <C4/C4_Component>
+
+title Component Diagram - Lendings Service
+
+Container_Boundary(lendings, "Lendings Service") {
+    Component(api, "REST API", "Controllers", "Lending endpoints")
+    Component(service, "Business Logic", "Services", "Lending operations")
+    Component(repo, "Data Access", "Repositories", "Lendings + Cache")
+    Component(events, "Events", "RabbitMQ", "Pub/Sub")
+    Component(clients, "REST Clients", "Fallback", "Books/Readers API")
+}
+
+ContainerDb(db, "Lendings DB", "PostgreSQL")
+System_Ext(mq, "RabbitMQ", "Message Broker")
+System_Ext(ext, "Other Services", "Books/Readers")
+
+Rel(api, service, "Uses")
+Rel(service, repo, "Persists/Cache")
+Rel(service, events, "Pub/Sub")
+Rel(service, clients, "Fallback")
+Rel(repo, db, "JDBC")
+Rel(events, mq, "AMQP")
+Rel(clients, ext, "REST")
+
+@enduml

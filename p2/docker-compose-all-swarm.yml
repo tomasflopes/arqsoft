@@ -1,0 +1,188 @@
+version: "3.8"
+
+services:
+  # ============= AUTHNUSERS SERVICE =============
+  lms-users:
+    image: lms-users:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: bootstrap
+      SPRING_DATASOURCE_URL: jdbc:postgresql://users_db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_RABBITMQ_HOST: rabbitmq
+    deploy:
+      replicas: 2
+    ports:
+      - "8088:8080"
+    networks:
+      - lms_network
+    depends_on:
+      - users_db
+      - rabbitmq
+
+  # ============= BOOKS SERVICE =============
+  lmsbooks:
+    image: lmsbooks:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: bootstrap
+      SPRING_DATASOURCE_URL: jdbc:postgresql://books_db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_GENERATE_DDL: "true"
+      FILE_UPLOAD_DIR: /tmp/uploads-psoft-g1-instance
+      SPRING_RABBITMQ_HOST: rabbitmq
+    deploy:
+      replicas: 2
+    ports:
+      - "8087:8080"
+    networks:
+      - lms_network
+    depends_on:
+      - books_db
+      - rabbitmq
+
+  # ============= GENRES SERVICE =============
+  lmsgenres:
+    image: lmsgenres:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: sql,bootstrap
+      SPRING_RABBITMQ_HOST: rabbitmq
+    deploy:
+      replicas: 2
+    ports:
+      - "8089:8080"
+    networks:
+      - lms_network
+    depends_on:
+      - genres_db
+      - rabbitmq
+
+  # ============= READERS SERVICE =============
+  lmsreaders:
+    image: lmsreaders:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: bootstrap
+      SPRING_DATASOURCE_URL: jdbc:postgresql://readers_db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_RABBITMQ_HOST: rabbitmq
+    deploy:
+      replicas: 2
+    ports:
+      - "8090:8080"
+    networks:
+      - lms_network
+    depends_on:
+      - readers_db
+      - rabbitmq
+
+  # ============= LENDINGS SERVICE =============
+  lmslendings:
+    image: lmslendings:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: bootstrap
+      SPRING_DATASOURCE_URL: jdbc:postgresql://lendings_db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_RABBITMQ_HOST: rabbitmq
+    deploy:
+      replicas: 2
+    ports:
+      - "8092:8080"
+    networks:
+      - lms_network
+    depends_on:
+      - lendings_db
+      - rabbitmq
+
+  # ============= DATABASES =============
+  users_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 1
+    ports:
+      - "5451-5470:5432"
+    networks:
+      - lms_network
+
+  books_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 1
+    ports:
+      - "5471-5490:5432"
+    networks:
+      - lms_network
+
+  genres_db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=genres
+      - MYSQL_ROOT_PASSWORD=password
+    deploy:
+      replicas: 1
+    ports:
+      - "3306:3306"
+    networks:
+      - lms_network
+
+  readers_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 1
+    ports:
+      - "5511-5530:5432"
+    networks:
+      - lms_network
+
+  lendings_db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    deploy:
+      replicas: 1
+    ports:
+      - "5531-5550:5432"
+    networks:
+      - lms_network
+
+  # ============= MESSAGE BROKER =============
+  rabbitmq:
+    image: rabbitmq:3-management
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - lms_network
+
+networks:
+  lms_network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  uploaded_files_volume_1:
+  uploaded_files_volume_2:

@@ -1,0 +1,21 @@
+{
+  "java.debug.settings.onBuildFailureProceed": true,
+  "sqltools.connections": [
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 3306,
+      "driver": "MySQL",
+      "name": "psoftg1",
+      "database": "psoftg1",
+      "username": "psoft",
+      "askForPassword": true
+    }
+  ],
+  "java.configuration.updateBuildConfiguration": "automatic"
+}

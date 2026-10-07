@@ -1,0 +1,28 @@
+@startuml deployment-view-prod
+
+node "DEI VM" {
+  
+  component "Backend App" as APP
+
+  database "SQL DB" as SQL_DB
+  interface "Persistence API (SQL)" as PERSIST_SQL
+
+  database "Redis Cache" as REDIS
+}
+
+cloud "ISBN Services" {
+  component "GoogleBooks" as ISBN_A
+  component "OpenLibrary" as ISBN_B
+}
+
+' App usage links
+APP --> PERSIST_SQL : uses
+PERSIST_SQL --> SQL_DB
+
+APP --> REDIS : cache
+
+APP --> ISBN_A : uses
+APP --> ISBN_B : uses (alternative)
+
+
+@enduml

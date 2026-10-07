@@ -1,0 +1,38 @@
+@startuml C4_Container_Diagram
+!include <C4/C4_Container>
+
+title Container Diagram - LMS Microservices
+
+Person(user, "User", "Librarian ou Reader")
+
+System_Boundary(lms, "Library Management System") {
+    Container(auth, "Authentication", "Spring Boot", "Auth & Users")
+    Container(books, "Books", "Spring Boot", "Books & Authors")
+    Container(genres, "Genres", "Spring Boot", "Genres")
+    Container(readers, "Readers", "Spring Boot", "Readers")
+    Container(lendings, "Lendings", "Spring Boot", "Lendings")
+}
+
+ContainerDb(db_pg, "PostgreSQL (Auth/Books/Readers/Lendings)", "Database")
+ContainerDb(db_mysql, "MySQL (Genres)", "Database")
+System_Ext(mq, "RabbitMQ", "Event Bus")
+
+Rel(user, auth, "Login")
+Rel(user, books, "Manage/View Books")
+Rel(user, lendings, "Borrow/Return")
+
+Rel(auth, db_pg, "Users data")
+Rel(books, db_pg, "Books data")
+Rel(readers, db_pg, "Readers data")
+Rel(lendings, db_pg, "Lendings data")
+Rel(genres, db_mysql, "Genres data")
+
+Rel(books, mq, "Book events")
+Rel(genres, mq, "Genre events")
+Rel(readers, mq, "Reader events")
+Rel(lendings, mq, "Lending events")
+
+Rel(mq, lendings, "Subscribe")
+Rel(mq, books, "Subscribe")
+
+@enduml

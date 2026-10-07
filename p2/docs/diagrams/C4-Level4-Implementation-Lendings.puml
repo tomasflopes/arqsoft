@@ -1,0 +1,57 @@
+@startuml Lendings_Implementation
+
+skinparam packageStyle rectangle
+
+title Lendings Service - Key Classes
+
+package "lendingmanagement" {
+    class LendingController
+    class LendingService
+    class Lending <<Aggregate>>
+    class Fine <<Entity>>
+    interface LendingRepository
+    interface LendingEventsPublisher
+}
+
+package "caching" {
+    interface BookCacheRepository
+    interface ReaderCacheRepository
+    class BookEventsConsumer
+    class ReaderEventsConsumer
+}
+
+package "external" {
+    class BooksServiceClient
+    class ReadersServiceClient
+}
+
+LendingController --> LendingService
+LendingService --> LendingRepository
+LendingService --> LendingEventsPublisher
+LendingService --> BookCacheRepository
+LendingService --> ReaderCacheRepository
+LendingService ..> Lending
+Lending *-- Fine
+
+BookEventsConsumer --> BookCacheRepository
+ReaderEventsConsumer --> ReaderCacheRepository
+
+LendingService ..> BooksServiceClient : fallback
+LendingService ..> ReadersServiceClient : fallback
+
+note right of Lending
+  **Aggregate Root**
+  - LendingNumber
+  - ReaderID
+  - ISBN
+  - Dates
+  - Fine (0..1)
+end note
+
+note bottom of caching
+  **Cache-Aside Pattern**
+  Events update cache
+  REST as fallback
+end note
+
+@enduml

@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-psoft-g1
+    environment:
+      MYSQL_ROOT_PASSWORD: Mariaroberta!123
+      MYSQL_DATABASE: psoftg1
+      MYSQL_USER: psoft
+      MYSQL_PASSWORD: docker
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7
+    container_name: redis-psoft-g1
+    ports:
+      - "6379:6379"
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongo-psoft-g1
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mysql_data:
+  mongo_data:

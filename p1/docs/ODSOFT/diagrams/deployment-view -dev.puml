@@ -1,0 +1,40 @@
+@startuml deployment-view-dev
+
+node "Docker Host" {
+
+  folder "App Container" {
+    component "Backend App" as APP
+  }
+
+  folder "MySQL Container" {
+    database "MySQL DB" as SQL_DB
+    interface "Persistence API (SQL)" as PERSIST_SQL
+  }
+
+  folder "MongoDB Container" {
+    database "Mongo DB" as MONGO_DB
+    interface "Persistence API (Mongo)" as PERSIST_MONGO
+  }
+
+  folder "Redis Container" {
+    database "Redis Cache" as REDIS
+  }
+}
+
+cloud "ISBN Services" {
+  component "GoogleBooks" as ISBN_A
+  component "OpenLibrary" as ISBN_B
+}
+
+' App usage links
+APP --> PERSIST_SQL : uses
+APP --> PERSIST_MONGO : uses
+PERSIST_SQL --> SQL_DB
+PERSIST_MONGO --> MONGO_DB
+
+APP --> REDIS : cache
+
+APP --> ISBN_A : uses
+APP --> ISBN_B : uses (alternative)
+
+@enduml

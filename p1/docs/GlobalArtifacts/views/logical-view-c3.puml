@@ -1,0 +1,28 @@
+@startuml logical-view-c3
+
+top to bottom direction
+
+interface "API" as API
+interface "DB" as DB
+interface "API Ninjas" as NINJAS
+
+component "LMS System" <<component>> <<system (C4)>> {
+  portin " " as P1
+  portin " " as P3
+  portin " " as P4
+  
+  component "Backend" as BACKEND {
+    portin " " as P2
+    component "Books" as BOOKS
+    component "Authors" as AUTHORS
+    component "Lendings" as LENDINGS
+    component "Readers" as READERS
+  }
+
+  P3 --( DB
+  P4 --( NINJAS
+  API -- P1
+  P1 -- P2
+}
+
+@enduml

@@ -1,0 +1,39 @@
+@startuml logical-implementation-manifest-c3
+
+left to right direction
+
+' Logical View
+package "Logical View" {
+  [Books] as LOG_BOOKS
+  [Authors] as LOG_AUTHORS
+  [Lendings] as LOG_LENDINGS
+  [Readers] as LOG_READERS
+  [Users] as LOG_USERS
+  [Genres] as LOG_GENRES
+  [Auth] as LOG_AUTH
+  [External] as LOG_EXTERNAL
+}
+
+' Implementation View
+package "Implementation View" {
+  [bookmanagement] as IMP_BOOKS
+  [authormanagement] as IMP_AUTHORS
+  [lendingmanagement] as IMP_LENDINGS
+  [readermanagement] as IMP_READERS
+  [usermanagement] as IMP_USERS
+  [genremanagement] as IMP_GENRES
+  [auth] as IMP_AUTH
+  [external] as IMP_EXTERNAL
+}
+
+' Manifest Mapping (dashed with stereotype)
+LOG_BOOKS ..> IMP_BOOKS : <<manifest>>
+LOG_AUTHORS ..> IMP_AUTHORS : <<manifest>>
+LOG_LENDINGS ..> IMP_LENDINGS : <<manifest>>
+LOG_READERS ..> IMP_READERS : <<manifest>>
+LOG_USERS ..> IMP_USERS : <<manifest>>
+LOG_GENRES ..> IMP_GENRES : <<manifest>>
+LOG_AUTH ..> IMP_AUTH : <<manifest>>
+LOG_EXTERNAL ..> IMP_EXTERNAL : <<manifest>>
+
+@enduml

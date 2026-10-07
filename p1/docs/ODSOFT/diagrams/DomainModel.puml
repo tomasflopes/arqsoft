@@ -1,0 +1,99 @@
+@startuml DM
+'https://plantuml.com/class-diagram
+skinparam classAttributeIconSize 0
+hide empty attributes
+hide empty methods
+skinparam classBackgroundColor beige
+skinparam ArrowColor #222222
+
+top to bottom direction
+
+package "<<aggregate>> User" {
+  entity User <<entity>> <<root>> {
+    - username: string
+    - password: string
+   }
+
+  class Name <<(V,#FF8B40) value object>> {}
+  User *-- Name
+}
+
+package "<<aggregate>> Librarian" {
+  entity Librarian <<entity>> <<root>> {}
+}
+
+package "<<aggregate>> Genre" {
+  entity Genre <<entity>> <<root>> {
+    - genre
+  }
+}
+
+package "<<aggregate>> Book" {
+  entity Book <<entity>> <<root>> {  }
+  class Isbn <<(V,#FF8B40) value object>> {}
+  class Title <<(V,#FF8B40) value object>> {}
+  class Description <<(V,#FF8B40) value object>> {}
+  class Photo <<(V,#FF8B40) value object>> {}
+
+  Book *-- Isbn
+  Book *-- Title
+  Book *-- Description
+  Book *-- Photo
+}
+
+
+package "<<aggregate>> Author" {
+  entity Author <<entity>> <<root>> {
+    - author number
+    - photo
+    - bio
+  }
+  class Name <<(V,#FF8B40) value object>> {}
+  class Photo <<(V,#FF8B40) value object>> {}
+
+  Author *-- Name 	
+  Author *-- Photo
+}
+
+package "<<aggregate>> Reader" {
+  entity Reader <<entity>> <<root>> {
+    - readerNumber
+    - email
+    - phoneNumber
+    - birthDate
+    - gdprConsent
+    - marketingConsent
+    - thirdPartySharing
+    - photo
+  }
+}
+
+package "<<aggregate>> Lending" {
+  entity Lending <<entity>> <<root>> {
+    - lendingNumber
+    - startDate
+    - limitDate
+    - returnedDate
+    - fineValuePerDay
+    - commentary
+  }
+}
+
+package "<<aggregate>> Fine" {
+  entity Fine <<entity>> <<root>> {
+    - value
+    - valuePerDay
+  }
+}
+
+Reader -left-|> User 
+Librarian -up-|> User 
+
+Librarian "1" -- "0..*" Book
+Book "1..*" -up- "1..*"  Author
+Book  "1..*" -- "1"  Genre
+Lending "1" -- "0..1" Fine
+Lending "0..*" -up- "1" Reader
+Lending "0..*" - "1" Book
+
+@enduml

@@ -58,7 +58,7 @@
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>42.6.0</version> <!-- Use the latest version available -->
+			<version>42.7.12</version> <!-- Use the latest version available -->
 		</dependency>
 
 		<!-- security, authentication & authorization -->
